@@ -10,7 +10,7 @@ import (
 // Define a home handler function which returns a  byte slice
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		http.NotFound(w, r)
+		app.notFound(w) // Use the notFound() helper
 		return
 	}
 
@@ -27,8 +27,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	// http.Error() function to send a generic 500 Internal Server Error
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
-		app.errorLog.Println(err.Error())
-		http.Error(w, "Internal Server Error", 500)
+		app.serveError(w, err) // Use the serverError() helper
 		return
 	}
 
@@ -37,8 +36,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	// dynamic data that we want to pass in.
 	err = ts.Execute(w, nil)
 	if err != nil {
-		app.errorLog.Println(err.Error())
-		http.Error(w, "Internal Server Error", 500)
+		app.serveError(w, err) // Use the serverError() helper
 	}
 }
 
@@ -46,7 +44,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
-		http.NotFound(w, r)
+		app.notFound(w) // Use the not found() helper
 		return
 	}
 	fmt.Fprintf(w, "Display a specific snippet with ID %d...", id)
@@ -56,8 +54,8 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 	// Use r.Method to check wether the request is using POST or not.
 	if r.Method != http.MethodPost {
-		w.WriteHeader(405)
-		w.Write([]byte("Method Not Allowed"))
+		w.Header().Set("Allow", http.MethodPost)
+		app.clientError(w, http.StatusMethodNotAllowed) // Use the clientError() helper
 		return
 	}
 
