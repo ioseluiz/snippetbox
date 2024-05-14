@@ -1,10 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
+
+	"github.com/ioseluiz/snippetbox_3/pkg/models"
 )
 
 // Define a home handler function which returns a  byte slice
@@ -47,7 +50,21 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w) // Use the not found() helper
 		return
 	}
-	fmt.Fprintf(w, "Display a specific snippet with ID %d...", id)
+
+	// Use the SnippetModel object's Get method to retrieve the data for a
+	// specific record based on it's ID. If no matching record is found,
+	// return a 404 Not Found response.
+	s, err := app.snippets.Get(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			app.notFound(w)
+		} else {
+			app.serverError(w, err)
+		}
+		return
+	}
+	// Write the snippet data as a plain-text HTTP response body.
+	fmt.Fprintf(w, "%v", s)
 }
 
 // Add a createSnippet handler function
