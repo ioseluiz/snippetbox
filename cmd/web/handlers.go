@@ -3,7 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
-	"html/template"
+
+	// "html/template"
 	"net/http"
 	"strconv"
 
@@ -17,30 +18,39 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s, err := app.snippets.Latest()
+	if err != nil {
+		app.serverError(w, err)
+	}
+
+	for _, snippet := range s {
+		fmt.Fprintf(w, "%v\n", snippet)
+	}
+
 	// Initialize a slice containing the paths to the two files. Note that the
 	// home.page.tmpl file must be the "first" file in the slice.
-	files := []string{
-		"./ui/html/home.page.tmpl",
-		"./ui/html/base.layout.tmpl",
-		"./ui/html/footer.partial.tmpl",
-	}
+	// files := []string{
+	// 	"./ui/html/home.page.tmpl",
+	// 	"./ui/html/base.layout.tmpl",
+	// 	"./ui/html/footer.partial.tmpl",
+	// }
 
-	// Use the template.ParseFiles function to read the template file into a
-	// a template set. If there's an error, we log the detailed error message and use the
-	// http.Error() function to send a generic 500 Internal Server Error
-	ts, err := template.ParseFiles(files...)
-	if err != nil {
-		app.serverError(w, err) // Use the serverError() helper
-		return
-	}
+	// // Use the template.ParseFiles function to read the template file into a
+	// // a template set. If there's an error, we log the detailed error message and use the
+	// // http.Error() function to send a generic 500 Internal Server Error
+	// ts, err := template.ParseFiles(files...)
+	// if err != nil {
+	// 	app.serverError(w, err) // Use the serverError() helper
+	// 	return
+	// }
 
-	//We then use the Execute() method on the template set to write the template
-	// content as the response body. The last parameter to Execute() represents any
-	// dynamic data that we want to pass in.
-	err = ts.Execute(w, nil)
-	if err != nil {
-		app.serverError(w, err) // Use the serverError() helper
-	}
+	// //We then use the Execute() method on the template set to write the template
+	// // content as the response body. The last parameter to Execute() represents any
+	// // dynamic data that we want to pass in.
+	// err = ts.Execute(w, nil)
+	// if err != nil {
+	// 	app.serverError(w, err) // Use the serverError() helper
+	// }
 }
 
 // Add a showSnippet handler function
